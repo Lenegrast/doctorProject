@@ -1,23 +1,27 @@
 package main
 
 import (
-	"UnknownProject/internal/handlers"
+	config2 "UnknownProject/config"
+	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/sirupsen/logrus"
+	"io"
 	"net/http"
 )
 
-var r = chi.NewRouter()
-
 func main() {
-	startServer()
-	r.Get("/schedules/", handlers.Example)
-}
+	r := chi.NewRouter()
+	config := config2.ReadConfig()
 
-func startServer() {
-	err := http.ListenAndServe("localhost:8080", r)
+	r.Get("/schedules", func(rw http.ResponseWriter, r *http.Request) {
+		id := r.URL.Query().Get("user_id")
+		io.WriteString(rw, fmt.Sprintf("user_id = %s", id))
+	})
+
+	// Запуск сервера
+	logrus.Infof("Server started. Port %s", config.Port)
+	err := http.ListenAndServe("localhost:"+config.Port, r)
 	if err != nil {
 		logrus.Fatalf("Failed with start server. Error: %s", err)
 	}
-	logrus.Info("Server started")
 }
